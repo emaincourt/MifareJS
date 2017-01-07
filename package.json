@@ -1,0 +1,18 @@
+{
+  "name": "mifare-node-js",
+  "author": "Elliot Maincourt <e.maincourt@gmail.com>",
+  "version": "0.0.1",
+  "description": "Read and write dumps of Mifare Classic 1K tags.",
+  "main": "index.js",
+  "keywords": [
+    "Mifare",
+    "NodeJS",
+    "NFC"
+  ],
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "better-console": "^1.0.0",
+    "colors": "^1.1.2",
+    "console.table": "^0.8.0"
+  }
+}

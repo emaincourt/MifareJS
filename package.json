@@ -13,6 +13,7 @@
   "dependencies": {
     "better-console": "^1.0.0",
     "colors": "^1.1.2",
-    "console.table": "^0.8.0"
+    "console.table": "^0.8.0",
+    "prompt": "^1.0.0"
   }
 }

@@ -77,25 +77,58 @@ function readMifareClassic(path){
 // Write Mifare Dumb to file
 // Input : Path to the file
 // Output : Promise that will be resolved when file is written
-function writeMifareDumpToFile(path){
+function writeMifareDumpToFile(path,altkeys,keyfile){
+
+  var params = ['-O' + path];
+
   return new Promise(function(resolve,reject){
 
     console.log(colors.blue('Please wait while trying to authenticate to the tag...'));
 
-    execFile('mfoc', ['-O' + path].concat(keys), (err, stdout, stderr) => {
-
-      error.message = stderr || "";
-      error.message = err  || "";
-
-      error.type = 1;
-
-      if(err || stderr)
-        reject(error);
-      else
-        resolve(path);
-
-    });
+    if(altkeys)
+      params = params.concat(altkeys);
+    if(keyfile){
+      var p = readKeysFromFile(keyfile).then(function(keysArray){
+        params = params.concat(keysArray);
+        mfoc(path,params,resolve,reject);
+      })
+    }
+    else
+      mfoc(path,params,resolve,reject);
   });
+}
+
+function mfoc(path,params,resolve,reject){
+  execFile('mfoc', params, (err, stdout, stderr) => {
+
+    error.message = stderr || "";
+    error.message = err  || "";
+
+    error.type = 1;
+
+    if(err || stderr)
+      reject(error);
+    else
+      resolve(path);
+
+  });
+}
+
+function readKeysFromFile(path){
+  return new Promise(function(resolve,reject){
+    fs.readFile(path,'utf8',function(err,data){
+      if(err){
+        reject(err);
+        return;
+      }
+
+      var keysArray = data.match(/[0-9A-Za-z]{12}/g);
+
+      for(var i=0; i<keysArray.length; i++)
+        keysArray[i] = "-k " + keysArray[i];
+      resolve(keysArray);
+    })
+  })
 }
 
 function cloneMifareClassic(source,target,unlock,callback){

@@ -1,3 +1,6 @@
+require("babel-core/register");
+require("babel-polyfill");
+
 import console from 'better-console';
 import { promisify } from 'bluebird';
 import { execFile } from 'child_process';

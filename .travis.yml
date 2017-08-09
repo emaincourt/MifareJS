@@ -7,3 +7,4 @@ node_js:
   - "4"
 before_install:
   - npm install codecov
+script: npm run test:coverage

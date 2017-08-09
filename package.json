@@ -6,7 +6,8 @@
   "main": "lib",
   "scripts": {
     "build": "babel index.js -d lib",
-    "test": "jest && codecov",
+    "test": "jest",
+    "test:coverage": "jest && codecov",
     "test:watch": "jest --watch"
   },
   "jest": {

@@ -1,6 +1,6 @@
-[![codecov](https://codecov.io/gh/emaincourt/MifareJS/branch/master/graph/badge.svg)](https://codecov.io/gh/emaincourt/MifareJS)
+[![Build Status](https://travis-ci.org/emaincourt/MifareJS.svg?branch=master)](https://travis-ci.org/emaincourt/MifareJS) [![codecov](https://codecov.io/gh/emaincourt/MifareJS/branch/master/graph/badge.svg)](https://codecov.io/gh/emaincourt/MifareJS)
 
-### MifareJS - Mifare for dummies :pig:
+## MifareJS - Mifare for dummies :pig:
 
 ***
 
@@ -10,7 +10,7 @@ I am not an expert in RFID nor NFC technologies but really enjoyed deep diving i
 
 Let's take a tour.
 
-#### Dependencies
+### Dependencies
 
 Before being able to use this library, you need to install both `libNFC` and `mfoc` libraries (use brew on OSX) :
 
@@ -20,11 +20,11 @@ brew install libnfc brew
 
 Moreover, you'll need a NFC reader to be able to play with Mifare chipsets. I'm personnaly using [Identive SCM SCL3711](https://www.amazon.fr/Identive-905169-SCM-SCL3711-USB/dp/B00G6G1WH2) but it doesn't really matter. Only make sure that you're using one that is part of the offical [LibNFC list](http://nfc-tools.org/index.php?title=Devices_compatibility_matrix). If you want to go deeper, I would advise you to take a look at the great work of Johnatan Westhues who developed [Proxmark](https://github.com/Proxmark/proxmark3/wiki) which is definitely the best audit tool for NFC/RFID technologies with also a highly active community.
 
-#### What is Mifare ?
+### What is Mifare ?
 
 Mifare is a communication protocol that partially relies on ISO 14443 standards. In case of Mifare Classic, only layers 1 and 2 are taking advantage of the standards. Transmission and communication protocols, respectively 4th and 3rd layers, rely on the NXP CRYPTO-1 protocol that [has been broken in 2008 by Karsten Nohl and Henryk Plötz](https://www.blackhat.com/presentations/bh-usa-08/Nohl/BH_US_08_Nohl_Mifare.pdf)
 
-#### RFID, NFC ?
+### RFID, NFC ?
 
 Contactless devices can most of the time either be considered as RFID or NFC devices. The differences between these two types mainly rely on the frequency. RFID devices (which stands for Radio Frequency Identification) are Low Frequency devices (operating @ 125kHz up to 134,2 kHz). On the other hand, NFC (Near Field Contact) devices are considered as High Frequency devices (13,56MHz). Contactless cards can be found quite everywhere and it might be useful for security reasons to be aware of their opportunities but also of their weaknesses.
 
@@ -37,7 +37,7 @@ Cards](http://www.cs.ru.nl/~rverdult/Ciphertext-only_Cryptanalysis_on_Hardened_M
 - [Hacking Mifare Classic Cards](https://www.blackhat.com/docs/sp-14/materials/arsenal/sp-14-Almeida-Hacking-MIFARE-Classic-Cards-Slides.pdf)
 - [APDU commands for communication](http://read.pudn.com/downloads157/doc/701059/Mifare%20APDU.pdf)
 
-#### Authentication for Mifare
+### Authentication for Mifare
 
 Each Mifare Classic card can be splitted in 16 sectors of data. Each sector has two authentication keys : key A and key B. Both of it are contained into the last memory block of each sector according to the following structure :
 
@@ -65,7 +65,7 @@ The UID of the tag is basically what identifies it to the reader. When you're lo
 
 The `nfc-mfclassic` command from the `libnfc` library will not allow you to write the sector 0 with a 2nd generation card. However you can do it with a Proxmark or also fork the libnfc library to remove the specific case for sector 0.
 
-#### Documentation
+### Documentation
 
 For getting started, instanciate a new `LockSmith`. The only parameter that can be provided to it's constructor is an object that might contain the following keys :
 
@@ -84,7 +84,7 @@ const lockSmith = new LockSmith({
 });
 ```
 
-##### How to dump a tag ?
+#### How to dump a tag ?
 
 ```javascript
 import LockSmith from 'mifareJS';
@@ -94,7 +94,7 @@ const lockSmith = new LockSmith();
 await lockSmith.dump('tag.mfd');
 ```
 
-##### How to get the hex data from dump ?
+#### How to get the hex data from dump ?
 
 ```javascript
 import LockSmith from 'mifareJS';
@@ -102,7 +102,7 @@ import LockSmith from 'mifareJS';
 const dump = await LockSmith.readHexFile('./tag.mfd', true); // The second parameter can be set to false if you don't want the hex content to be displayed in standard output
 ```
 
-##### Clone a tag's content onto another one
+#### Clone a tag's content onto another one
 
 We'll here guide you on the way cloning a tag. Let's say you do have a chinese empty tag and your own, which you would like to duplicate. Let's call their dump `chinese.mfd` and `original.mfd`. The last parameter of the `clone` methods lets you tell if we should unlock sector 0 (Chinese Mifare 1K) or not (Classic tag).
 

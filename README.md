@@ -1,14 +1,18 @@
+[![codecov](https://codecov.io/gh/emaincourt/MifareJS/branch/master/graph/badge.svg)](https://codecov.io/gh/emaincourt/MifareJS)
+
 ### MifareJS - Mifare for dummies :pig:
 
 ***
 
 A LibNFC and MFOC NodeJS wrapper to read/write data from/to ISO/IEC 14443 A compliant tags. This repository can also be seen as a playground for a better understanding of Mifare technologies.
 
+I am not an expert in RFID nor NFC technologies but really enjoyed deep diving inside. I would be glad you to correct me if something is wrong.
+
 Let's take a tour.
 
 #### Dependencies
 
-Before being able to use this library, you need to install both `LibNFC` and `mfoc` libraries (use brew on OSX) :
+Before being able to use this library, you need to install both `libNFC` and `mfoc` libraries (use brew on OSX) :
 
 ```bash
 brew install libnfc brew

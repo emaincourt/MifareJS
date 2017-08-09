@@ -6,8 +6,12 @@
   "main": "lib",
   "scripts": {
     "build": "babel index.js -d lib",
-    "test": "jest --coverage",
+    "test": "jest && codecov",
     "test:watch": "jest --watch"
+  },
+  "jest": {
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true
   },
   "keywords": [
     "Mifare",

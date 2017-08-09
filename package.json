@@ -3,7 +3,12 @@
   "author": "Elliot Maincourt <e.maincourt@gmail.com>",
   "version": "0.0.1",
   "description": "Read and write dumps of Mifare Classic 1K tags.",
-  "main": "index.js",
+  "main": "lib",
+  "scripts": {
+    "build": "babel index.js -d lib",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
   "keywords": [
     "Mifare",
     "NodeJS",
@@ -11,9 +16,25 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
+    "babel-jest": "^20.0.3",
     "better-console": "^1.0.0",
+    "bluebird": "^3.5.0",
     "colors": "^1.1.2",
     "console.table": "^0.8.0",
+    "jest": "^20.0.4",
+    "lodash": "^4.17.4",
     "prompt": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-eslint": "^7.2.3",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^4.4.1",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jest": "^20.0.3",
+    "eslint-plugin-jsx-a11y": "^6.0.2",
+    "eslint-plugin-react": "^7.1.0"
   }
 }

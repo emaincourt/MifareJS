@@ -1,163 +1,130 @@
-const spawn     = require('child_process').spawn,
-      execFile  = require('child_process').execFile,
-      fs        = require('fs'),
-      console   = require('better-console'),
-      colors    = require('colors/safe');
+import console from 'better-console';
+import { promisify } from 'bluebird';
+import { execFile } from 'child_process';
+import colors from 'colors/safe';
+import { readFile } from 'fs';
+import { chunk } from 'lodash';
+import { resolve } from 'path';
 
-var re        = /(.{2}  .{2}  .{2}  .{2})/,
-    error     = { 'type' : 0, 'message' : '' };
+const re = /([0-9a-z]{2}  [0-9a-z]{2}  [0-9a-z]{2}  [0-9a-z]{2})/i;
 
-// Read Mifare Classic 1K UID
-// Returns new promise :
-//  - resolve(uid)
-//  - reject({error.type,error.message})
-function readMifareUID() {
-
-  return new Promise(function(resolve,reject){
-
-    execFile('nfc-list', (err, stdout, stderr) => {
-
-      error.message = stderr || "";
-      error.message = err  || "";
-
-      error.type = 0;
-
-      if(err || stderr)
-        reject(error);
-      else
-        resolve(extractUIDFromOutput(stdout));
-
-    });
-
-  });
-
-}
-
-// Prints Hex Data File to terminal
-// Input : path to the file, cb Callback function to execute after reading file
-// Output : null
-function readHexFile(path,cb){
-  fs.readFile(path, function(err, code){
-
-    var buffer  = [[]],
-        index   = 0;
-
-    code.forEach(function(el){
-
-      buffer[index].push(el.toString(16));
-
-      if(buffer[index].length == 16){
-        buffer.push([]);
-        index++;
-      }
-    });
-
-    console.table(buffer);
-
-    if(cb && typeof cb === 'function')
-      cb(buffer);
-
-  });
-}
-
-// Reads Mifare Classic 1K tag and writes dump to path
-// Input : Path to the file
-// Output : Promise that will be resolved after reading created file
-function readMifareClassic(path){
-  return new Promise(function(resolve,reject){
-    writeMifareDumpToFile(path,resolve,reject).then(function(path){
-      readHexFile(path);
-      resolve();
-    },function(err){
-      reject(err);
-    });
-  });
-}
-
-// Write Mifare Dumb to file
-// Input : Path to the file
-// Output : Promise that will be resolved when file is written
-function writeMifareDumpToFile(path,altkeys,keyfile){
-
-  var params = ['-O' + path];
-
-  return new Promise(function(resolve,reject){
-
-    console.log(colors.blue('Please wait while trying to authenticate to the tag...'));
-
-    if(altkeys)
-      params = params.concat(altkeys);
-    if(keyfile){
-      var p = readKeysFromFile(keyfile).then(function(keysArray){
-        params = params.concat(keysArray);
-        mfoc(path,params,resolve,reject);
-      })
+export class MifareClassic1K {
+  /*
+    Read Mifare Classic 1K UID
+    @returns {Promise.<String, Error>}: The UID of the tag or the error that has been raised if needed
+  */
+  static async readUID() {
+    const stdout = await promisify(execFile)('nfc-list');
+    const matches = stdout.match(re);
+    if (!matches) {
+      throw new ReferenceError('No tag has been found.');
     }
-    else
-      mfoc(path,params,resolve,reject);
-  });
+    return matches[1].replace(/ /g,'');
+  }
+
+  /*
+    Dumps the content of a Mifare Classic 1K dump to the given path
+    @param {String}: path to the file the dump should be written to
+    @returns {Promise<String, Error>}: the path the dump has been written to or the error if needed
+  */
+  static async dump(path, keys, ...options) {
+    const params = [
+      `-O ${path}`,
+      keys,
+      ...options,
+    ];
+    console.log(colors.blue('Please wait while authenticating to the tag...'));
+    return LockSmith.mfoc(params);
+  }
 }
 
-function mfoc(path,params,resolve,reject){
-  execFile('mfoc', params, (err, stdout, stderr) => {
+export default class LockSmith {
+  constructor({
+    keys = [],
+    workspace = './',
+    defaultKeys = 'keys.txt',
+  } = {}) {
+    if (!keys.reduce((acc, next) => acc && next.match(/[a-z0-9]{8}/i), true)) {
+      throw new Error('Provided keys must match the right pattern.');
+    }
+    this.keys = keys.map(key => `-k ${key}`);
+    this.workspace = workspace;
+    this.defaultKeys = this.readKeysFromFile(defaultKeys);
+  }
 
-    error.message = stderr || "";
-    error.message = err  || "";
+  /*
+    Dumps the content of a Mifare tag to the filename file
+    @param {String}: the name of file the dump should be written to
+    @param {Array}: additional parameters that should be provided to mfoc
+    @returns {Promise}
+  */
+  async dump(filename, ...options) {
+    const keys = [
+      ...(await this.defaultKeys),
+      ...this.keys,
+    ].join(' ');
+    const path = resolve(`${this.workspace}/${filename}`);
+    return MifareClassic1K.dump(path, keys, ...options);
+  }
 
-    error.type = 1;
+  /*
+    Clones the content of source to target after both of them have been dumped
+    If unlock is set to true, the sector 0 will also be written
+    This option should be turned off if you're using a 2nd gen mifare
+    @param {String}: source, dump of the tag to be cloned
+    @param {String}: target, dump of the target tag
+    @param {Boolean}: whether the sector 0 should be unlocked and written or not
+    @param {Array}: additional parameters that should be provided to mfoc
+    @returns {}
+  */
+  async clone(source, target, unlock = true) {
+    const command = [
+      'nfc-mfclassic',
+      unlock ? 'W X' : 'w x',
+      resolve(`${this.workspace}/${target}`),
+      resolve(`${this.workspace}/${source}`),
+    ].join(' ');
+    await promisify(execFile)(command, []);
+    console.log(colors.green('Successfully cloned.'));
+  }
 
-    if(err || stderr)
-      reject(error);
-    else
-      resolve(path);
+  /*
+    Reads the security keys from a file, matching all the strings that could match the right pattern
+    @param {String}: the name of the file that contains the keys
+    @param {Array}: an array containing the found keys
+    @returns {}
+  */
+  async readKeysFromFile(filename) {
+    const path = resolve(`${this.workspace}/${filename}`);
+    const stdout = await promisify(readFile)(path, 'utf8');
+    const matches = stdout.match(/[0-9a-z]{12}/gi);
+    return matches
+      ? matches.map(key => `-k ${key}`)
+      : [];
+  }
 
-  });
+  /*
+    Basically runs mfoc command with the provided parameters
+    @param {Array}: the options that should be passed to mfoc
+    @returns {Array}: The params that have been provided
+  */
+  static async mfoc(params) {
+    await promisify(execFile)('mfoc', params);
+    return params;
+  }
+
+  /*
+    Reads the Hex Data and writes it to the terminal
+    @param {String}: path to the file
+    @param {Boolean}: whether the content should be displayed or not
+    @returns {Array}: the Hex content read from file
+  */
+  static async readHexFile(path, display = true) {
+    const content = await promisify(readFile)(path);
+    const chunks = chunk(content, 16);
+    if (display) {
+      console.table(chunks);
+    }
+    return chunks;
+  }
 }
-
-function readKeysFromFile(path){
-  return new Promise(function(resolve,reject){
-    fs.readFile(path,'utf8',function(err,data){
-      if(err){
-        reject(err);
-        return;
-      }
-
-      var keysArray = data.match(/[0-9A-Za-z]{12}/g);
-
-      for(var i=0; i<keysArray.length; i++)
-        keysArray[i] = "-k " + keysArray[i];
-      resolve(keysArray);
-    })
-  })
-}
-
-function cloneMifareClassic(source,target,unlock,callback){
-
-  var params = (unlock) ? ' W X ' : ' w x ';
-      params += target + ' ' + source;
-
-  execFile('nfc-mfclassic' + params, [], (err, stdout, stderr) => {
-
-    error.message = stderr || "";
-    error.message = err  || "";
-
-    error.type = 2;
-
-    if(err || stderr)
-      console.log(error.message);
-    else
-      console.log(colors.green('Successfully cloned.'));
-
-  })
-}
-
-function extractUIDFromOutput(output){
-  return (output.match(re)) ? output.match(re)[1].replace(/ /g,'') : 0;
-}
-
-module.exports = {
-  readMifareUID: readMifareUID,
-  readMifareClassic: readMifareClassic,
-  readHexFile : readHexFile,
-  writeMifareDumpToFile: writeMifareDumpToFile
-};

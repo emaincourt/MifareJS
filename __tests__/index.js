@@ -71,7 +71,7 @@ describe('LockSmith', () => {
       });
       expect(lockSmith.keys).toEqual([]);
       expect(lockSmith.workspace).toEqual('./');
-      expect(mocks.readKeysFromFile).toHaveBeenCalledWith('filename.txt');
+      expect(mocks.readKeysFromFile).toHaveBeenCalledWith('keys.txt');
       Object.keys(mocks).forEach(key => mocks[key].mockRestore());
     });
   });
@@ -82,12 +82,15 @@ describe('LockSmith', () => {
       const mocks = {
         readKeysFromFile: jest.spyOn(LockSmith.prototype, 'readKeysFromFile')
           .mockImplementationOnce(() => Promise.resolve(['-k 00000000'])),
-        dump: jest.spyOn(Mifare.MifareClassic1K, 'dump')
+        mfoc: jest.spyOn(LockSmith, 'mfoc')
           .mockImplementationOnce(() => Promise.resolve()),
       };
       const lockSmith = new LockSmith();
-      await lockSmith.dump('dump.txt');
-      expect(mocks.dump).toHaveBeenCalledWith(resolve('./dump.txt'), '-k 00000000');
+      await lockSmith.dump('dump.mfd');
+      expect(mocks.mfoc).toHaveBeenCalledWith([
+        `-O ${resolve('./dump.mfd')}`,
+        '-k 00000000',
+      ]);
       Object.keys(mocks).forEach(key => mocks[key].mockRestore());
     });
   });
@@ -171,10 +174,7 @@ describe('LockSmith', () => {
           .mockImplementation(() => exec),
       };
       await LockSmith.mfoc([]);
-      expect(exec.mock.calls[0]).toEqual([
-        'mfoc',
-        [],
-      ]);
+      expect(exec.mock.calls[0][0]).toEqual(['mfoc', ''].join(' '));
       Object.keys(mocks).forEach(key => mocks[key].mockRestore());
     });
   });
@@ -243,24 +243,6 @@ describe('MifareClassic1K', () => {
       await expect(
         Mifare.MifareClassic1K.readUID(),
       ).rejects.toMatchSnapshot();
-      Object.keys(mocks).forEach(key => mocks[key].mockRestore());
-    });
-  });
-
-  describe('#dump', async () => {
-    it('dumps a tag to the given path', async () => {
-      expect.assertions(1);
-      const mocks = {
-        console: jest.spyOn(console, 'log')
-          .mockImplementationOnce(() => jest.fn()),
-        mfoc: jest.spyOn(LockSmith, 'mfoc')
-          .mockImplementationOnce(() => Promise.resolve()),
-      };
-      await Mifare.MifareClassic1K.dump('./dump.mfd', '-k 00000000');
-      expect(mocks.mfoc).toHaveBeenCalledWith([
-        '-O ./dump.mfd',
-        '-k 00000000',
-      ]);
       Object.keys(mocks).forEach(key => mocks[key].mockRestore());
     });
   });

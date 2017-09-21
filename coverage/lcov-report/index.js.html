@@ -22,22 +22,22 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>36/36</span>
+        <span class='fraction'>35/35</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">94.74% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>18/18</span>
+        <span class='fraction'>18/19</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>11/11</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>34/34</span>
+        <span class='fraction'>33/33</span>
       </div>
     </div>
   </div>
@@ -167,16 +167,7 @@
 122
 123
 124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134</td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+125</td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -200,21 +191,6 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -250,6 +226,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -309,18 +291,18 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">require("babel-core/register");
-require("babel-polyfill");
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">require('babel-core/register');
+require('babel-polyfill');
 &nbsp;
 import console from 'better-console';
 import { promisify } from 'bluebird';
-import { execFile } from 'child_process';
+import { exec } from 'child_process';
 import colors from 'colors/safe';
 import { readFile } from 'fs';
 import { chunk } from 'lodash';
 import { resolve } from 'path';
 &nbsp;
-const re = /([0-9a-z]{2}  [0-9a-z]{2}  [0-9a-z]{2}  [0-9a-z]{2})/i;
+const UIDREGEXP = /([0-9a-z]{2}[ ]{2}[0-9a-z]{2}[ ]{2}[0-9a-z]{2}[ ]{2}[0-9a-z]{2})/i;
 &nbsp;
 export class MifareClassic1K {
   /*
@@ -328,27 +310,12 @@ export class MifareClassic1K {
     @returns {Promise.&lt;String, Error&gt;}: The UID of the tag or the error that has been raised if needed
   */
   static async readUID() {
-    const stdout = await promisify(execFile)('nfc-list');
-    const matches = stdout.match(re);
+    const stdout = await promisify(exec)('nfc-list');
+    const matches = stdout.match(UIDREGEXP);
     if (!matches) {
       throw new ReferenceError('No tag has been found.');
     }
-    return matches[1].replace(/ /g,'');
-  }
-&nbsp;
-  /*
-    Dumps the content of a Mifare Classic 1K dump to the given path
-    @param {String}: path to the file the dump should be written to
-    @returns {Promise&lt;String, Error&gt;}: the path the dump has been written to or the error if needed
-  */
-  static async dump(path, keys, ...options) {
-    const params = [
-      `-O ${path}`,
-      keys,
-      ...options,
-    ];
-    console.log(colors.blue('Please wait while authenticating to the tag...'));
-    return LockSmith.mfoc(params);
+    return matches[1].replace(/ /g, '');
   }
 }
 &nbsp;
@@ -356,14 +323,14 @@ export default class LockSmith {
   constructor({
     keys = [],
     workspace = './',
-    defaultKeys = 'keys.txt',
+    defaultKeysPath = 'keys.txt',
   } = {}) {
     if (!keys.reduce((acc, next) =&gt; acc &amp;&amp; next.match(/[a-z0-9]{8}/i), true)) {
       throw new Error('Provided keys must match the right pattern.');
     }
     this.keys = keys.map(key =&gt; `-k ${key}`);
     this.workspace = workspace;
-    this.defaultKeys = this.readKeysFromFile(defaultKeys);
+    this.defaultKeys = this.readKeysFromFile(defaultKeysPath);
   }
 &nbsp;
   /*
@@ -372,13 +339,19 @@ export default class LockSmith {
     @param {Array}: additional parameters that should be provided to mfoc
     @returns {Promise}
   */
-  async dump(filename, ...options) {
+  async dump(filename = <span class="branch-0 cbranch-no" title="branch not covered" >'./dump.mfd',</span> ...options) {
     const keys = [
       ...(await this.defaultKeys),
       ...this.keys,
     ].join(' ');
     const path = resolve(`${this.workspace}/${filename}`);
-    return MifareClassic1K.dump(path, keys, ...options);
+    const params = [
+      `-O ${path}`,
+      keys,
+      ...options,
+    ];
+    console.log(colors.blue('Please wait while authenticating to the tag...'));
+    return this.constructor.mfoc(params);
   }
 &nbsp;
   /*
@@ -398,7 +371,7 @@ export default class LockSmith {
       resolve(`${this.workspace}/${target}`),
       resolve(`${this.workspace}/${source}`),
     ].join(' ');
-    await promisify(execFile)(command, []);
+    await promisify(exec)(command, []);
     console.log(colors.green('Successfully cloned.'));
   }
 &nbsp;
@@ -423,7 +396,7 @@ export default class LockSmith {
     @returns {Array}: The params that have been provided
   */
   static async mfoc(params) {
-    await promisify(execFile)('mfoc', params);
+    await promisify(exec)(`mfoc ${params.join(' ')}`);
     return params;
   }
 &nbsp;
@@ -448,7 +421,7 @@ export default class LockSmith {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Wed Aug 09 2017 20:13:36 GMT+0200 (CEST)
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Thu Sep 21 2017 10:14:23 GMT+0200 (CEST)
 </div>
 </div>
 <script src="prettify.js"></script>

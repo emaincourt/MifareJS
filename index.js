@@ -1,15 +1,15 @@
-require("babel-core/register");
-require("babel-polyfill");
+require('babel-core/register');
+require('babel-polyfill');
 
 import console from 'better-console';
 import { promisify } from 'bluebird';
-import { execFile } from 'child_process';
+import { exec } from 'child_process';
 import colors from 'colors/safe';
 import { readFile } from 'fs';
 import { chunk } from 'lodash';
 import { resolve } from 'path';
 
-const re = /([0-9a-z]{2}  [0-9a-z]{2}  [0-9a-z]{2}  [0-9a-z]{2})/i;
+const UIDREGEXP = /([0-9a-z]{2}[ ]{2}[0-9a-z]{2}[ ]{2}[0-9a-z]{2}[ ]{2}[0-9a-z]{2})/i;
 
 export class MifareClassic1K {
   /*
@@ -17,27 +17,12 @@ export class MifareClassic1K {
     @returns {Promise.<String, Error>}: The UID of the tag or the error that has been raised if needed
   */
   static async readUID() {
-    const stdout = await promisify(execFile)('nfc-list');
-    const matches = stdout.match(re);
+    const stdout = await promisify(exec)('nfc-list');
+    const matches = stdout.match(UIDREGEXP);
     if (!matches) {
       throw new ReferenceError('No tag has been found.');
     }
-    return matches[1].replace(/ /g,'');
-  }
-
-  /*
-    Dumps the content of a Mifare Classic 1K dump to the given path
-    @param {String}: path to the file the dump should be written to
-    @returns {Promise<String, Error>}: the path the dump has been written to or the error if needed
-  */
-  static async dump(path, keys, ...options) {
-    const params = [
-      `-O ${path}`,
-      keys,
-      ...options,
-    ];
-    console.log(colors.blue('Please wait while authenticating to the tag...'));
-    return LockSmith.mfoc(params);
+    return matches[1].replace(/ /g, '');
   }
 }
 
@@ -45,14 +30,14 @@ export default class LockSmith {
   constructor({
     keys = [],
     workspace = './',
-    defaultKeys = 'keys.txt',
+    defaultKeysPath = 'keys.txt',
   } = {}) {
     if (!keys.reduce((acc, next) => acc && next.match(/[a-z0-9]{8}/i), true)) {
       throw new Error('Provided keys must match the right pattern.');
     }
     this.keys = keys.map(key => `-k ${key}`);
     this.workspace = workspace;
-    this.defaultKeys = this.readKeysFromFile(defaultKeys);
+    this.defaultKeys = this.readKeysFromFile(defaultKeysPath);
   }
 
   /*
@@ -61,13 +46,19 @@ export default class LockSmith {
     @param {Array}: additional parameters that should be provided to mfoc
     @returns {Promise}
   */
-  async dump(filename, ...options) {
+  async dump(filename = './dump.mfd', ...options) {
     const keys = [
       ...(await this.defaultKeys),
       ...this.keys,
     ].join(' ');
     const path = resolve(`${this.workspace}/${filename}`);
-    return MifareClassic1K.dump(path, keys, ...options);
+    const params = [
+      `-O ${path}`,
+      keys,
+      ...options,
+    ];
+    console.log(colors.blue('Please wait while authenticating to the tag...'));
+    return this.constructor.mfoc(params);
   }
 
   /*
@@ -87,7 +78,7 @@ export default class LockSmith {
       resolve(`${this.workspace}/${target}`),
       resolve(`${this.workspace}/${source}`),
     ].join(' ');
-    await promisify(execFile)(command, []);
+    await promisify(exec)(command, []);
     console.log(colors.green('Successfully cloned.'));
   }
 
@@ -112,7 +103,7 @@ export default class LockSmith {
     @returns {Array}: The params that have been provided
   */
   static async mfoc(params) {
-    await promisify(execFile)('mfoc', params);
+    await promisify(exec)(`mfoc ${params.join(' ')}`);
     return params;
   }
 

@@ -5,7 +5,7 @@
   "description": "Read and write dumps of Mifare Classic 1K tags.",
   "main": "lib",
   "scripts": {
-    "build": "babel index.js -d lib",
+    "build": "babel index.js -d dist",
     "test": "jest",
     "test:coverage": "jest && codecov",
     "test:watch": "jest --watch"

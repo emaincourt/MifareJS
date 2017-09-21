@@ -73,7 +73,7 @@ For getting started, instanciate a new `LockSmith`. The only parameter that can 
 
 - `workspace`, the workspace that will be used for storing dumps
 
-- `defaultKeys`, path to a file that contains the default keys that should be used for authentication. If none is provided, the root `keys.txt` file will be used. I recommend not to set it. Prefer using `keys` for adding values
+- `defaultKeysPath`, path to a file that contains the default keys that should be used for authentication. If none is provided, the root `keys.txt` file will be used. I recommend not to set it. Prefer using `keys` for adding values
 
 ```javascript
 import LockSmith from 'mifareJS';

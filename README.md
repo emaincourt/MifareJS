@@ -15,7 +15,7 @@ Let's take a tour.
 Before being able to use this library, you need to install both `libNFC` and `mfoc` libraries (use brew on OSX) :
 
 ```bash
-brew install libnfc brew
+brew install libnfc mfoc
 ```
 
 Moreover, you'll need a NFC reader to be able to play with Mifare chipsets. I'm personnaly using [Identive SCM SCL3711](https://www.amazon.fr/Identive-905169-SCM-SCL3711-USB/dp/B00G6G1WH2) but it doesn't really matter. Only make sure that you're using one that is part of the offical [LibNFC list](http://nfc-tools.org/index.php?title=Devices_compatibility_matrix). If you want to go deeper, I would advise you to take a look at the great work of Johnatan Westhues who developed [Proxmark](https://github.com/Proxmark/proxmark3/wiki) which is definitely the best audit tool for NFC/RFID technologies with also a highly active community.

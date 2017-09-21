@@ -3,7 +3,7 @@
   "author": "Elliot Maincourt <e.maincourt@gmail.com>",
   "version": "0.0.1",
   "description": "Read and write dumps of Mifare Classic 1K tags.",
-  "main": "lib",
+  "main": "dist",
   "scripts": {
     "build": "babel index.js -d dist",
     "test": "jest",
